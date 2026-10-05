@@ -25,10 +25,21 @@ class _TelaPesquisaState extends State<TelaPesquisa> {
       ),
       body: Column(
         children: [
-          TextField(
-            onChanged: _pesquisar,
-            decoration: InputDecoration(
-              hintText: "Digite para pesquisar...",
+          Padding(
+            padding: EdgeInsets.all(10.0),
+            child: TextField(
+              onChanged: _pesquisar,
+              decoration: InputDecoration(
+                hintText: "Digite para pesquisar...",
+                filled: true,
+                fillColor: Color(0xFFD9EAD3),
+                contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                  borderSide: BorderSide.none,
+                ),
+                prefixIcon: Icon(Icons.search, color: Colors.grey),
+              ),
             ),
           ),
           Expanded(
