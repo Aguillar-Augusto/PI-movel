@@ -33,6 +33,7 @@ class _Tela1State extends State<Tela1> {
             titulo: json['name'] ?? 'Sem Título',
             autor: json['autor'] ?? 'Autor Desconhecido',
             urlCapa: json['capa_path'] ?? '',
+            urlPdf: json['pdf_path'] ?? '',
             descricao: json['sinopse'] ?? 'Sem descrição.',
             genero: json['genero1'] ?? 'Outros',
           )).toList();

@@ -84,6 +84,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
       titulo: json['name'] ?? 'Sem Título',
       autor: json['autor'] ?? 'Autor Desconhecido',
       urlCapa: json['capa_path'] ?? '',
+      urlPdf: json['pdf_path'] ?? '',
       descricao: json['sinopse'] ?? 'Sem descrição.',
       genero: json['genero1'] ?? 'Outros',
       favorito: isFav,

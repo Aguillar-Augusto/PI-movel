@@ -3,6 +3,7 @@ class Livro {
   final String titulo;
   final String autor;
   final String urlCapa;
+  final String urlPdf;
   final String descricao;
   final String genero;
   final bool favorito;
@@ -12,6 +13,7 @@ class Livro {
     required this.titulo,
     required this.autor,
     required this.urlCapa,
+    required this.urlPdf,
     required this.descricao,
     required this.genero,
     this.favorito = false,
@@ -23,6 +25,7 @@ class Livro {
       'titulo': titulo,
       'autor': autor,
       'urlCapa': urlCapa,
+      'urlPdf': urlPdf,
       'descricao': descricao,
       'genero': genero,
       'favorito': favorito,
@@ -35,6 +38,7 @@ class Livro {
       titulo: map['titulo'] ?? '',
       autor: map['autor'] ?? '',
       urlCapa: map['urlCapa'] ?? '',
+      urlPdf: map['urlPdf'] ?? '',
       descricao: map['descricao'] ?? '',
       genero: map['genero'] ?? '',
       favorito: map['favorito'] ?? false,

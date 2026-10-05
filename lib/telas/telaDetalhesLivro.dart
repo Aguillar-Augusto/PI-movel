@@ -3,6 +3,7 @@ import 'package:testetcc2/models/classes/livro.dart';
 import 'package:testetcc2/controller/api_client.dart';
 import 'package:testetcc2/controller/autorizacao_controller.dart';
 import 'package:dio/dio.dart';
+import 'package:testetcc2/telas/LeitorPDF.dart';
 
 class TelaDetalhesLivro extends StatefulWidget {
   final Livro livro;
@@ -153,10 +154,20 @@ class _TelaDetalhesLivroState extends State<TelaDetalhesLivro> {
               children: [
                 ElevatedButton.icon(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("O leitor de PDF será aberto aqui!"),
-                        duration: Duration(seconds: 2),
+                    if (widget.livro.urlPdf.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("O arquivo PDF deste livro não está disponível.")),
+                      );
+                      return;
+                    }
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LeitorPDF(
+                          urlDocumento: widget.livro.urlPdf,
+                          titulo: widget.livro.titulo,
+                        ),
                       ),
                     );
                   },
@@ -171,7 +182,6 @@ class _TelaDetalhesLivroState extends State<TelaDetalhesLivro> {
                 SizedBox(width: 15),
                 OutlinedButton.icon(
                   onPressed: (_isProcessandoFavorito || _isLoadingStatusInicial) ? null : _toggleFavorito,
-
                   icon: (_isProcessandoFavorito || _isLoadingStatusInicial)
                       ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                       : Icon(_isFavorito ? Icons.favorite : Icons.favorite_border,

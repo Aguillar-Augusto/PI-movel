@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:testetcc2/telas/Splash1.dart';
-import 'package:testetcc2/LivrosMock.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Carrega os livros cadastrados pelo usuário (persistidos em shared_preferences)
-  await LivrosMock.carregarCustomizados();
   runApp(const MyApp());
 }
 
