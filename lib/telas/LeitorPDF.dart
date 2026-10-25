@@ -2,8 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
-/// Tela de leitura de PDF via WebView com desmontagem segura (Safe Dispose)
-/// para evitar fechamento/crash da aplicação ao voltar no Android (Impeller / PlatformView).
 class LeitorPDF extends StatefulWidget {
   final String urlDocumento;
   final String titulo;
@@ -34,8 +32,6 @@ class _LeitorPDFState extends State<LeitorPDF> {
     urlParaCarregar = _montarUrlVisualizacao(widget.urlDocumento);
   }
 
-  /// Remove a flag 'fl_attachment' do Cloudinary (que forçaria download)
-  /// e, no Android, encapsula a URL no visualizador embutido do Google Docs.
   String _montarUrlVisualizacao(String urlOriginal) {
     final String urlLimpa = urlOriginal
         .trim()
@@ -48,8 +44,6 @@ class _LeitorPDFState extends State<LeitorPDF> {
     return urlLimpa;
   }
 
-  /// Desmonta a WebView nativa ANTES de iniciar a animação de Navigator.pop(),
-  /// evitando o crash nativo de SurfaceTexture/Impeller no Android ao sair da tela.
   Future<void> _fecharLeitor() async {
     if (_encerrandoWebView) return;
 
@@ -108,8 +102,6 @@ class _LeitorPDFState extends State<LeitorPDF> {
               ? const Center(child: CircularProgressIndicator())
               : Stack(
             children: [
-              // 1. WebView para exibição do PDF (sem transparentBackground e sem builtInZoomControls,
-              // que causam crash ao liberar a janela nativa no Android)
               InAppWebView(
                 initialUrlRequest: URLRequest(url: WebUri(urlParaCarregar)),
                 initialSettings: InAppWebViewSettings(
@@ -165,7 +157,6 @@ class _LeitorPDFState extends State<LeitorPDF> {
                 },
               ),
 
-              // 2. Barra de progresso superior durante o carregamento
               if (isLoading && !hasError)
                 Align(
                   alignment: Alignment.topCenter,
@@ -176,7 +167,6 @@ class _LeitorPDFState extends State<LeitorPDF> {
                   ),
                 ),
 
-              // 3. Tela de Feedback de Erro com botão de nova tentativa
               if (hasError)
                 Container(
                   color: Colors.white,

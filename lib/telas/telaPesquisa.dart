@@ -19,7 +19,6 @@ class _TelaPesquisaState extends State<TelaPesquisa> {
     _carregarLivros();
   }
 
-// lib/telas/telaPesquisa.dart (métodos _carregarLivros e _pesquisar refatorados)
   Future<void> _carregarLivros() async {
     try {
       final dio = await ApiClient.getInstance();

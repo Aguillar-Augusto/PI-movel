@@ -1,4 +1,3 @@
-// lib/models/classes/autorizacao.dart
 class Autorizacao {
   final String usuario;
   final String tokenAutorizacao;

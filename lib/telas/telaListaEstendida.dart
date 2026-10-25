@@ -1,4 +1,3 @@
-// lib/telas/telaListaEstendida.dart
 import 'package:flutter/material.dart';
 import 'package:testetcc2/telas/telaDetalhesLivro.dart';
 import 'package:testetcc2/models/classes/livro.dart';

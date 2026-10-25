@@ -46,7 +46,6 @@ class _TelaDetalhesLivroState extends State<TelaDetalhesLivro> {
         });
       }
     } catch (_) {
-      // Mantém estado inicial em caso de falha de rede
     } finally {
       if (mounted) {
         setState(() {

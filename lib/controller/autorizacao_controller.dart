@@ -1,4 +1,3 @@
-// lib/controller/autorizacao_controller.dart
 import 'package:dio/dio.dart';
 import 'package:testetcc2/models/classes/autorizacao.dart';
 import 'package:testetcc2/models/local_storage_service.dart';
@@ -15,7 +14,6 @@ class AutorizacaoController {
       final dio = await ApiClient.getInstance();
       await dio.post('/logout');
     } catch (_) {
-      // Caso falhe na rede, prossegue com a limpeza local do token
     } finally {
       await LocalStorageService.desgravarAutorizacao();
     }
@@ -65,7 +63,6 @@ class AutorizacaoController {
         await LocalStorageService.desgravarAutorizacao();
         return false;
       }
-      // Em falha temporária de rede (timeout), mantém a sessão local
       return true;
     } catch (_) {
       return false;

@@ -1,4 +1,3 @@
-// lib/telas/Splash1.dart
 import 'package:flutter/material.dart';
 import 'package:testetcc2/telas/Login.dart';
 import 'package:testetcc2/telas/principal.dart';

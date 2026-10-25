@@ -1,4 +1,3 @@
-// lib/models/classes/livro.dart
 class Livro {
   final String id;
   final String titulo;

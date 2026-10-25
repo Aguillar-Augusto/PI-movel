@@ -1,4 +1,3 @@
-// lib/telas/principal.dart
 import 'package:flutter/material.dart';
 import 'package:testetcc2/telas/Tela1.dart';
 import 'package:testetcc2/telas/telaPesquisa.dart';
