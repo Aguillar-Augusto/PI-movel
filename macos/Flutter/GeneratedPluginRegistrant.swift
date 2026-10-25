@@ -5,12 +5,12 @@
 import FlutterMacOS
 import Foundation
 
-import advance_pdf_viewer2
+import flutter_inappwebview_macos
+import flutter_secure_storage_macos
 import shared_preferences_foundation
-import sqflite_darwin
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
-  FlutterPluginPdfViewerPlugin.register(with: registry.registrar(forPlugin: "FlutterPluginPdfViewerPlugin"))
+  InAppWebViewFlutterPlugin.register(with: registry.registrar(forPlugin: "InAppWebViewFlutterPlugin"))
+  FlutterSecureStoragePlugin.register(with: registry.registrar(forPlugin: "FlutterSecureStoragePlugin"))
   SharedPreferencesPlugin.register(with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
-  SqflitePlugin.register(with: registry.registrar(forPlugin: "SqflitePlugin"))
 }

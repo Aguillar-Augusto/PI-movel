@@ -11,6 +11,7 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final _usuarioController = TextEditingController();
   final _senhaController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -20,29 +21,39 @@ class _LoginState extends State<Login> {
   }
 
   Future<void> _entrar() async {
+    if (_isLoading) return;
+
     final usuario = _usuarioController.text.trim();
     final senha = _senhaController.text;
 
     if (usuario.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor, insira seu usuário')),
+        const SnackBar(content: Text('Por favor, insira seu e-mail')),
       );
       return;
     }
     if (senha.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor, insira sua senha')),
+        const SnackBar(content: Text('Por favor, insira sua senha')),
       );
       return;
     }
 
-    final auth = Autorizacao(usuario: usuario, senha: senha, token_autorizacao: '');
+    setState(() {
+      _isLoading = true;
+    });
 
-    final autenticado = await AutorizacaoController.verificaAutorizacaoOnline(auth);
+    final autenticado = await AutorizacaoController.realizarLogin(usuario, senha);
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
 
     if (autenticado) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Usuário autenticado: $usuario')),
+        SnackBar(content: Text('Bem-vindo, $usuario!')),
       );
       Navigator.pushReplacement(
         context,
@@ -50,7 +61,7 @@ class _LoginState extends State<Login> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Usuário não autenticado!')),
+        const SnackBar(content: Text('E-mail ou senha inválidos.')),
       );
     }
   }

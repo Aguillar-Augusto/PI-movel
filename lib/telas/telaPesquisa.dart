@@ -19,31 +19,27 @@ class _TelaPesquisaState extends State<TelaPesquisa> {
     _carregarLivros();
   }
 
+// lib/telas/telaPesquisa.dart (métodos _carregarLivros e _pesquisar refatorados)
   Future<void> _carregarLivros() async {
     try {
       final dio = await ApiClient.getInstance();
       final response = await dio.get('/livros');
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
-        List<dynamic> dados = response.data;
+        final List<dynamic> dados = response.data;
 
         setState(() {
-          _todosOsLivros = dados.map((json) => Livro(
-            id: json['id'].toString(),
-            titulo: json['name'] ?? 'Sem Título',
-            autor: json['autor'] ?? 'Autor Desconhecido',
-            urlCapa: json['capa_path'] ?? '',
-            urlPdf: json['pdf_path'] ?? '',
-            descricao: json['sinopse'] ?? 'Sem descrição.',
-            genero: json['genero1'] ?? 'Outros',
-          )).toList();
-
+          _todosOsLivros = dados
+              .map((json) => Livro.fromMap(json as Map<String, dynamic>))
+              .toList();
           _resultados = _todosOsLivros;
           _isLoading = false;
         });
       }
     } catch (e) {
-      print('Erro ao carregar livros para pesquisa: $e');
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -55,11 +51,9 @@ class _TelaPesquisaState extends State<TelaPesquisa> {
       if (termo.trim().isEmpty) {
         _resultados = _todosOsLivros;
       } else {
-        final texto = termo.toLowerCase();
-        _resultados = _todosOsLivros.where((livro) {
-          return livro.titulo.toLowerCase().contains(texto) ||
-              livro.autor.toLowerCase().contains(texto);
-        }).toList();
+        _resultados = _todosOsLivros
+            .where((livro) => livro.correspondeAPesquisa(termo))
+            .toList();
       }
     });
   }

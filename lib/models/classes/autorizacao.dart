@@ -1,29 +1,24 @@
-import 'dart:convert';
-
+// lib/models/classes/autorizacao.dart
 class Autorizacao {
   final String usuario;
-  final String senha;
-  final String token_autorizacao;
+  final String tokenAutorizacao;
 
-  Autorizacao({
+  const Autorizacao({
     required this.usuario,
-    required this.senha,
-    required this.token_autorizacao,
+    required this.tokenAutorizacao,
   });
 
   Map<String, dynamic> toMap() {
     return {
       'usuario': usuario,
-      'senha': senha,
-      'token_autorizacao': token_autorizacao,
+      'token_autorizacao': tokenAutorizacao,
     };
   }
 
   factory Autorizacao.fromMap(Map<String, dynamic> map) {
     return Autorizacao(
       usuario: map['usuario'] ?? '',
-      senha: map['senha'] ?? '',
-      token_autorizacao: map['token_autorizacao'] ?? '',
+      tokenAutorizacao: map['token_autorizacao'] ?? '',
     );
   }
 }

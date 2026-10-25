@@ -17,19 +17,19 @@ class TelaDetalhesLivro extends StatefulWidget {
 class _TelaDetalhesLivroState extends State<TelaDetalhesLivro> {
   bool _isProcessandoFavorito = false;
   bool _isLoadingStatusInicial = false;
+  bool _alterouFavorito = false;
   late bool _isFavorito;
 
   @override
   void initState() {
     super.initState();
     _isFavorito = widget.livro.favorito;
-
     _verificarFavorito();
   }
 
   Future<void> _verificarFavorito() async {
     final temSessao = await AutorizacaoController.verificaAutorizacaoOffline();
-    if (!temSessao) return;
+    if (!temSessao || !mounted) return;
 
     setState(() {
       _isLoadingStatusInicial = true;
@@ -39,13 +39,14 @@ class _TelaDetalhesLivroState extends State<TelaDetalhesLivro> {
       final dio = await ApiClient.getInstance();
       final response = await dio.get('/livros/${widget.livro.id}/check-favorito');
 
+      if (!mounted) return;
       if (response.statusCode == 200) {
         setState(() {
-          _isFavorito = response.data['favorito'];
+          _isFavorito = response.data['favorito'] == true;
         });
       }
-    } catch (e) {
-      print('Erro ao verificar status do favorito: $e');
+    } catch (_) {
+      // Mantém estado inicial em caso de falha de rede
     } finally {
       if (mounted) {
         setState(() {
@@ -61,7 +62,7 @@ class _TelaDetalhesLivroState extends State<TelaDetalhesLivro> {
     if (!temSessao) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Precisa iniciar sessão para favoritar livros.")),
+        const SnackBar(content: Text("Precisa iniciar sessão para favoritar livros.")),
       );
       return;
     }
@@ -74,25 +75,29 @@ class _TelaDetalhesLivroState extends State<TelaDetalhesLivro> {
       final dio = await ApiClient.getInstance();
       final response = await dio.post('/livros/${widget.livro.id}/favoritar');
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         setState(() {
-          _isFavorito = !_isFavorito;
+          _isFavorito = response.data is Map && response.data.containsKey('favorito')
+              ? response.data['favorito'] == true
+              : !_isFavorito;
+          _alterouFavorito = true;
         });
 
-        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_isFavorito
                 ? "${widget.livro.titulo} adicionado aos favoritos!"
                 : "${widget.livro.titulo} removido dos favoritos!"),
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erro ao atualizar favoritos. Tente novamente.")),
+        const SnackBar(content: Text("Erro ao atualizar favoritos. Tente novamente.")),
       );
     } finally {
       if (mounted) {
@@ -141,6 +146,18 @@ class _TelaDetalhesLivroState extends State<TelaDetalhesLivro> {
                 style: TextStyle(fontSize: 16, color: Colors.black54, fontStyle: FontStyle.italic),
               ),
             ),
+
+            SizedBox(height: 15),
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 8.0,
+              alignment: WrapAlignment.center,
+              children: [
+                _buildGeneroChip(widget.livro.genero, context),
+                _buildGeneroChip(widget.livro.generoSecundario, context),
+              ],
+            ),
+
             Padding(
               padding: EdgeInsets.all(25),
               child: Text(
@@ -196,6 +213,26 @@ class _TelaDetalhesLivroState extends State<TelaDetalhesLivro> {
             ),
             SizedBox(height: 40),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGeneroChip(String genero, BuildContext context) {
+    if (genero.trim().isEmpty) return SizedBox.shrink();
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        genero,
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
         ),
       ),
     );

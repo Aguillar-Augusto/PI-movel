@@ -1,3 +1,4 @@
+// lib/telas/Tela1.dart
 import 'package:flutter/material.dart';
 import 'package:testetcc2/telas/telaListaEstendida.dart';
 import 'package:testetcc2/telas/telaDetalhesLivro.dart';
@@ -24,25 +25,20 @@ class _Tela1State extends State<Tela1> {
       final dio = await ApiClient.getInstance();
       final response = await dio.get('/livros');
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
-        List<dynamic> dados = response.data;
+        final List<dynamic> dados = response.data;
 
         setState(() {
-          livrosReais = dados.map((json) => Livro(
-            id: json['id'].toString(),
-            titulo: json['name'] ?? 'Sem Título',
-            autor: json['autor'] ?? 'Autor Desconhecido',
-            urlCapa: json['capa_path'] ?? '',
-            urlPdf: json['pdf_path'] ?? '',
-            descricao: json['sinopse'] ?? 'Sem descrição.',
-            genero: json['genero1'] ?? 'Outros',
-          )).toList();
-
+          livrosReais = dados
+              .map((json) => Livro.fromMap(json as Map<String, dynamic>))
+              .toList();
           isLoading = false;
         });
       }
     } catch (e) {
-      print('Erro ao buscar livros: $e');
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -53,44 +49,18 @@ class _Tela1State extends State<Tela1> {
     if (genero.toLowerCase() == 'favoritos') {
       return livrosReais.where((l) => l.favorito).toList();
     }
-    return livrosReais.where((l) => l.genero.toLowerCase() == genero.toLowerCase()).toList();
+    return livrosReais.where((l) => l.pertenceAoGenero(genero)).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
         onRefresh: _carregarLivrosDaApi,
         child: ListView(
-          children: [
-            secaoGenero("Ação e Aventura"),
-            secaoGenero("Biografia"),
-            secaoGenero("Chick-Lit"),
-            secaoGenero("Clássicos"),
-            secaoGenero("Conto"),
-            secaoGenero("Crônica"),
-            secaoGenero("Distopia"),
-            secaoGenero("Drama"),
-            secaoGenero("Ensaio"),
-            secaoGenero("Fantasia"),
-            secaoGenero("Ficção Científica"),
-            secaoGenero("Ficção Histórica"),
-            secaoGenero("Ficção Policial"),
-            secaoGenero("Horror/Terror"),
-            secaoGenero("Infanto-juvenil"),
-            secaoGenero("Mistério"),
-            secaoGenero("Não Ficção"),
-            secaoGenero("Novela"),
-            secaoGenero("Poesia"),
-            secaoGenero("Realismo Mágico"),
-            secaoGenero("Religião e Espiritualidade"),
-            secaoGenero("Romance"),
-            secaoGenero("Suspense/Thriller"),
-            secaoGenero("Tragédia"),
-            secaoGenero("Young Adult (YA)"),
-          ],
+          children: Livro.generos.map((genero) => secaoGenero(genero)).toList(),
         ),
       ),
     );
@@ -99,29 +69,35 @@ class _Tela1State extends State<Tela1> {
   Widget secaoGenero(String titulo) {
     final livros = _livrosPorGenero(titulo);
 
-    if (livros.isEmpty) return SizedBox.shrink();
+    if (livros.isEmpty) return const SizedBox.shrink();
 
     return Card(
-      margin: EdgeInsets.all(10),
+      margin: const EdgeInsets.all(10),
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
-        padding: EdgeInsets.all(15),
+        padding: const EdgeInsets.all(15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(titulo, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Expanded(
+                  child: Text(
+                    titulo,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
                 TextButton(
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => TelaListaEstendida(tituloGenero: titulo),
                       ),
                     );
+                    if (mounted) _carregarLivrosDaApi();
                   },
                   child: Text(
                     "Estender lista",
@@ -130,7 +106,7 @@ class _Tela1State extends State<Tela1> {
                 ),
               ],
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             SizedBox(
               height: 180,
               child: ListView(
@@ -146,17 +122,20 @@ class _Tela1State extends State<Tela1> {
 
   Widget testeLivro(Livro livro) {
     return InkWell(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final alterouFavorito = await Navigator.push<bool>(
           context,
           MaterialPageRoute(
             builder: (context) => TelaDetalhesLivro(livro: livro),
           ),
         );
+        if (alterouFavorito == true && mounted) {
+          _carregarLivrosDaApi();
+        }
       },
       child: Container(
         width: 120,
-        margin: EdgeInsets.only(right: 10),
+        margin: const EdgeInsets.only(right: 10),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.secondaryContainer,
           borderRadius: BorderRadius.circular(8),
@@ -169,10 +148,13 @@ class _Tela1State extends State<Tela1> {
         ),
         child: livro.urlCapa.isEmpty
             ? Center(
-          child: Text(
-            livro.titulo,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.bold),
+          child: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: Text(
+              livro.titulo,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         )
             : null,

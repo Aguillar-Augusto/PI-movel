@@ -1,3 +1,4 @@
+// lib/telas/Splash1.dart
 import 'package:flutter/material.dart';
 import 'package:testetcc2/telas/Login.dart';
 import 'package:testetcc2/telas/principal.dart';
@@ -16,8 +17,7 @@ class _Splash1State extends State<Splash1> {
   }
 
   Future<void> _verificarLogin() async {
-    await Future.delayed(Duration(seconds: 3));
-    final logado = await AutorizacaoController.verificaAutorizacaoOffline();
+    final logado = await AutorizacaoController.validarSessaoAtiva();
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
@@ -29,10 +29,9 @@ class _Splash1State extends State<Splash1> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      body: Center(
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text('Carregando...'),
             SizedBox(height: 15),

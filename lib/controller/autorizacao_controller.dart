@@ -1,11 +1,12 @@
+// lib/controller/autorizacao_controller.dart
+import 'package:dio/dio.dart';
 import 'package:testetcc2/models/classes/autorizacao.dart';
 import 'package:testetcc2/models/local_storage_service.dart';
 import 'api_client.dart';
-import 'package:dio/dio.dart';
 
 class AutorizacaoController {
   static Future<void> gravaAutorizacao(String usuario, String token) async {
-    final auth = Autorizacao(usuario: usuario, senha: '', token_autorizacao: token);
+    final auth = Autorizacao(usuario: usuario, tokenAutorizacao: token);
     await LocalStorageService.salvarAutorizacao(auth);
   }
 
@@ -13,46 +14,61 @@ class AutorizacaoController {
     try {
       final dio = await ApiClient.getInstance();
       await dio.post('/logout');
-    } catch (e) {
-      print('Aviso: Falha ao invalidar token no servidor. Deslogando localmente. Erro: $e');
+    } catch (_) {
+      // Caso falhe na rede, prossegue com a limpeza local do token
+    } finally {
+      await LocalStorageService.desgravarAutorizacao();
     }
-
-    await LocalStorageService.desgravarAutorizacao();
   }
 
-  static Future<bool> verificaAutorizacaoOnline(Autorizacao auth) async {
+  static Future<bool> realizarLogin(String email, String senha) async {
     try {
       final dio = await ApiClient.getInstance();
 
       final response = await dio.post('/login', data: {
-        'email': auth.usuario,
-        'password': auth.senha,
+        'email': email,
+        'password': senha,
       });
 
       if (response.statusCode == 200) {
-        final token = response.data['access_token'];
-        final nomeUsuario = response.data['user']['name'] ?? auth.usuario;
+        final token = (response.data['access_token'] ?? '').toString();
+        final nomeUsuario = (response.data['user']?['name'] ?? email).toString();
 
-        await gravaAutorizacao(nomeUsuario, token);
-        return true;
+        if (token.isNotEmpty) {
+          await gravaAutorizacao(nomeUsuario, token);
+          return true;
+        }
       }
       return false;
-
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        print('Erro de autenticação: Credenciais inválidas.');
-      } else {
-        print('Erro na conexão com a API: ${e.message}');
-      }
+    } on DioException {
       return false;
-    } catch (e) {
-      print('Erro inesperado durante o login: $e');
+    } catch (_) {
       return false;
     }
   }
 
   static Future<bool> verificaAutorizacaoOffline() async {
     final auth = await LocalStorageService.carregarAutorizacao();
-    return auth != null && auth.token_autorizacao.isNotEmpty;
+    return auth != null && auth.tokenAutorizacao.isNotEmpty;
+  }
+
+  static Future<bool> validarSessaoAtiva() async {
+    final temTokenLocal = await verificaAutorizacaoOffline();
+    if (!temTokenLocal) return false;
+
+    try {
+      final dio = await ApiClient.getInstance();
+      final response = await dio.get('/user');
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        await LocalStorageService.desgravarAutorizacao();
+        return false;
+      }
+      // Em falha temporária de rede (timeout), mantém a sessão local
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 }

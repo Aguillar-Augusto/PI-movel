@@ -31,6 +31,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
     final temSessao = await AutorizacaoController.verificaAutorizacaoOffline();
 
     if (!temSessao) {
+      if (!mounted) return;
       setState(() {
         isLogado = false;
         isLoading = false;
@@ -48,6 +49,8 @@ class _TelaPerfilState extends State<TelaPerfil> {
         dio.get('/user/meus-livros'),
       ]);
 
+      if (!mounted) return;
+
       final resUser = responses[0];
       final resFav = responses[1];
       final resMeus = responses[2];
@@ -55,40 +58,31 @@ class _TelaPerfilState extends State<TelaPerfil> {
       if (resUser.statusCode == 200) {
         setState(() {
           isLogado = true;
-          nome = resUser.data['name'] ?? 'Usuário';
-          bio = resUser.data['bio'] ?? '';
-          fotoUrl = resUser.data['foto_perfil_path'] ?? '';
+          nome = (resUser.data['name'] ?? 'Usuário').toString();
+          bio = (resUser.data['bio'] ?? '').toString();
+          fotoUrl = (resUser.data['foto_perfil_path'] ?? '').toString();
 
-          List<dynamic> favDados = resFav.data;
-          meusFavoritos = favDados.map((json) => _converterJsonParaLivro(json, true)).toList();
+          final List<dynamic> favDados = resFav.data;
+          meusFavoritos = favDados
+              .map((json) => Livro.fromMap(json as Map<String, dynamic>, favoritoForcado: true))
+              .toList();
 
-          List<dynamic> meusDados = resMeus.data;
-          meusLivros = meusDados.map((json) => _converterJsonParaLivro(json, false)).toList();
+          final List<dynamic> meusDados = resMeus.data;
+          meusLivros = meusDados
+              .map((json) => Livro.fromMap(json as Map<String, dynamic>))
+              .toList();
 
           isLoading = false;
         });
       }
     } catch (e) {
-      print('Erro ao carregar perfil completo: $e');
+      if (!mounted) return;
       setState(() {
         isLogado = false;
         isLoading = false;
         nome = 'Visitante';
       });
     }
-  }
-
-  Livro _converterJsonParaLivro(Map<String, dynamic> json, bool isFav) {
-    return Livro(
-      id: json['id'].toString(),
-      titulo: json['name'] ?? 'Sem Título',
-      autor: json['autor'] ?? 'Autor Desconhecido',
-      urlCapa: json['capa_path'] ?? '',
-      urlPdf: json['pdf_path'] ?? '',
-      descricao: json['sinopse'] ?? 'Sem descrição.',
-      genero: json['genero1'] ?? 'Outros',
-      favorito: isFav,
-    );
   }
 
   @override
@@ -140,9 +134,10 @@ class _TelaPerfilState extends State<TelaPerfil> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     onPressed: () {
-                      Navigator.push(
+                      Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(builder: (context) => Login()),
+                            (Route<dynamic> route) => false,
                       );
                     },
                     icon: Icon(Icons.login, color: Colors.white),
@@ -183,16 +178,17 @@ class _TelaPerfilState extends State<TelaPerfil> {
               children: [
                 Text(titulo, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 TextButton(
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => TelaListaEstendida(tituloGenero: titulo),
                       ),
                     );
+                    if (mounted) _carregarPerfil();
                   },
                   child: Text(
-                    "Estender lista",
+                    "Ver mais",
                     style: TextStyle(color: Theme.of(context).colorScheme.primary),
                   ),
                 ),
